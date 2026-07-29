@@ -13,10 +13,18 @@ export default function BillingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [msg, setMsg] = useState("");
 
+  const [entitlements, setEntitlements] = useState<{
+    minutes_used?: number;
+    minutes_remaining?: number | null;
+    limits?: { minutes: number | null; locations: number | null; sms: boolean };
+    locations?: number;
+  } | null>(null);
+
   useEffect(() => {
     apiFetch<Organization>("/v1/orgs/me").then(setOrg);
     apiFetch<Array<{ metric: string; quantity: number }>>("/v1/billing/usage").then(setUsage).catch(() => []);
     apiFetch<Plan[]>("/v1/billing/plans").then(setPlans).catch(() => setPlans([]));
+    apiFetch<typeof entitlements>("/v1/billing/entitlements").then(setEntitlements).catch(() => null);
   }, []);
 
   async function checkout(plan: string) {
@@ -51,7 +59,14 @@ export default function BillingPage() {
     <div className="animate-rise max-w-3xl">
       <h1 className="brand text-4xl font-bold">Billing</h1>
       <p className="mt-2 text-[var(--muted)]">
-        Current plan: <strong className="text-[var(--ink)]">{org?.plan ?? "…"}</strong> · {org?.status} · {minutes} voice minutes used
+        Current plan: <strong className="text-[var(--ink)]">{org?.plan ?? "…"}</strong> · {org?.status} · {minutes} voice
+        minutes used
+        {entitlements?.minutes_remaining != null && (
+          <> · {entitlements.minutes_remaining} remaining</>
+        )}
+        {entitlements?.limits?.locations != null && (
+          <> · {entitlements.locations ?? 0}/{entitlements.limits.locations} locations</>
+        )}
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">

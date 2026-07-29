@@ -63,6 +63,28 @@ def usage(auth: AuthContext = Depends(get_current_user)):
     return Repository().list_usage(auth.org_id)
 
 
+@router.get("/entitlements")
+def entitlements(auth: AuthContext = Depends(get_current_user)):
+    from app.services.plan_limits import limits_for, minutes_remaining
+
+    repo = Repository()
+    org = repo.get_org(auth.org_id)
+    used = sum(
+        float(u.get("quantity", 0))
+        for u in repo.list_usage(auth.org_id)
+        if u.get("metric") == "voice_minutes"
+    )
+    limits = limits_for(org.get("plan"))
+    return {
+        "plan": org.get("plan"),
+        "status": org.get("status"),
+        "limits": limits,
+        "minutes_used": used,
+        "minutes_remaining": minutes_remaining(org.get("plan"), used),
+        "locations": len(repo.list_restaurants(auth.org_id)),
+    }
+
+
 @router.post("/webhooks/stripe")
 async def stripe_webhook(
     request: Request,

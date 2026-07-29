@@ -16,7 +16,15 @@ def list_restaurants(auth: AuthContext = Depends(get_current_user)):
 
 @router.post("", response_model=Restaurant)
 def create_restaurant(body: RestaurantCreate, auth: AuthContext = Depends(get_current_user)):
-    return Repository().create_restaurant(auth.org_id, body.model_dump())
+    from app.services.plan_limits import can_add_location
+
+    repo = Repository()
+    org = repo.get_org(auth.org_id)
+    existing = repo.list_restaurants(auth.org_id)
+    ok, reason = can_add_location(org, len(existing))
+    if not ok:
+        raise HTTPException(402, reason)
+    return repo.create_restaurant(auth.org_id, body.model_dump())
 
 
 @router.get("/{restaurant_id}", response_model=Restaurant)
