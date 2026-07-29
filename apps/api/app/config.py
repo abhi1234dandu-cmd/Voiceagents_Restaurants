@@ -29,7 +29,10 @@ class Settings(BaseSettings):
 
     stripe_secret_key: str = ""
     stripe_webhook_secret: str = ""
-    stripe_price_id: str = ""
+    stripe_price_id: str = ""  # legacy / default (starter)
+    stripe_price_id_starter: str = ""
+    stripe_price_id_professional: str = ""
+    stripe_price_id_premium: str = ""
 
     sentry_dsn: str = ""
     platform_admin_user_ids: str = ""

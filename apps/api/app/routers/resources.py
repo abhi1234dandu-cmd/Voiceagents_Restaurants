@@ -34,16 +34,22 @@ def get_agent(restaurant_id: UUID, auth: AuthContext = Depends(get_current_user)
 def update_agent(
     restaurant_id: UUID, body: VoiceAgentUpdate, auth: AuthContext = Depends(get_current_user)
 ):
+    from fastapi import HTTPException
+
+    from app.services.plan_limits import can_activate_agent
+
     repo = _scoped(restaurant_id, auth)
     org = repo.get_org(auth.org_id)
     payload = body.model_dump(exclude_unset=True)
-    if payload.get("active") is True and org.get("status") not in ("active",):
-        from fastapi import HTTPException
-
-        raise HTTPException(402, "Active subscription required to activate agent")
-    if payload.get("active") is True and org.get("plan") == "free" and not org.get("stripe_customer_id"):
-        # Allow free trial activation in MVP if status active
-        pass
+    if payload.get("active") is True:
+        used = sum(
+            float(u.get("quantity", 0))
+            for u in repo.list_usage(auth.org_id)
+            if u.get("metric") == "voice_minutes"
+        )
+        ok, reason = can_activate_agent(org, used)
+        if not ok:
+            raise HTTPException(402, reason)
     return repo.update_agent(restaurant_id, payload)
 
 

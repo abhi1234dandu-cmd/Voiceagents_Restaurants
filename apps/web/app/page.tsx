@@ -21,6 +21,12 @@ export default function HomePage() {
             Hostline
           </span>
           <nav className="flex items-center gap-5 text-sm text-[var(--linen)]/80">
+            <Link href="/pricing" className="hidden hover:text-[var(--linen)] sm:inline">
+              Pricing
+            </Link>
+            <Link href="/security" className="hidden hover:text-[var(--linen)] sm:inline">
+              Security
+            </Link>
             <Link href="/login" className="hidden hover:text-[var(--linen)] sm:inline">
               Sign in
             </Link>
@@ -75,7 +81,12 @@ export default function HomePage() {
       </section>
 
       <footer className="border-t border-white/10 px-6 py-10 text-center text-sm text-[var(--linen)]/40">
-        © {new Date().getFullYear()} Hostline · Built for the dining room
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-6">
+          <Link href="/pricing" className="hover:text-[var(--linen)]">Pricing</Link>
+          <Link href="/security" className="hover:text-[var(--linen)]">Security</Link>
+          <Link href="/login" className="hover:text-[var(--linen)]">Demo</Link>
+        </div>
+        <p className="mt-6">© {new Date().getFullYear()} Hostline · Built for the dining room</p>
       </footer>
     </main>
   );

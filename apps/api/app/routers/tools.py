@@ -72,8 +72,13 @@ def create_reservation(body: ToolRequest):
 
 @router.post("/send_sms_confirmation", response_model=ToolResponse)
 def send_sms_confirmation(body: ToolRequest, settings: Settings = Depends(get_settings)):
+    from app.services.plan_limits import limits_for
+
     repo = Repository()
     restaurant = repo.get_restaurant(body.restaurant_id)
+    org = repo.get_org(restaurant["org_id"])
+    if not limits_for(org.get("plan")).get("sms"):
+        return ToolResponse(ok=False, error="SMS requires Professional plan or higher")
     from_number = restaurant.get("sms_from_number") or restaurant.get("phone_e164")
     to_number = body.args.get("to_number")
     message = body.args.get(
@@ -142,3 +147,33 @@ def embed_search(body: ToolRequest):
     faqs = repo.search_faqs(body.restaurant_id, query)
     items = repo.search_menu(body.restaurant_id, query)
     return ToolResponse(ok=True, result={"faqs": faqs, "menu_items": items})
+
+
+@router.post("/log_catering_inquiry", response_model=ToolResponse)
+def log_catering_inquiry(body: ToolRequest):
+    from app.services.plan_limits import limits_for
+
+    repo = Repository()
+    restaurant = repo.get_restaurant(body.restaurant_id)
+    org = repo.get_org(restaurant["org_id"])
+    # Professional+ gets catering capture (same gate as SMS for MVP)
+    if org.get("plan") in ("free", "starter"):
+        return ToolResponse(ok=False, error="Catering inquiries require Professional plan or higher")
+    inquiry = {
+        "guest_name": body.args.get("guest_name"),
+        "guest_phone": body.args.get("guest_phone"),
+        "event_date": body.args.get("event_date"),
+        "guest_count": body.args.get("guest_count"),
+        "notes": body.args.get("notes"),
+    }
+    repo.audit(
+        restaurant["org_id"],
+        None,
+        "catering_inquiry",
+        "inquiry",
+        str(body.call_id or body.restaurant_id),
+        inquiry,
+    )
+    if body.call_id:
+        repo.update_call(body.call_id, {"outcome": "catering_inquiry"})
+    return ToolResponse(ok=True, result={"logged": True, **inquiry})

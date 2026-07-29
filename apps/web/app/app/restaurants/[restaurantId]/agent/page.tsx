@@ -11,6 +11,7 @@ export default function AgentPage() {
   const [voiceId, setVoiceId] = useState("");
   const [greeting, setGreeting] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
+  const [language, setLanguage] = useState("en");
   const [active, setActive] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -20,6 +21,7 @@ export default function AgentPage() {
       setVoiceId(a.voice_id);
       setGreeting(a.greeting);
       setSystemPrompt(a.system_prompt);
+      setLanguage(a.language || "en");
       setActive(a.active);
     });
   }, [restaurantId]);
@@ -28,7 +30,7 @@ export default function AgentPage() {
     e.preventDefault();
     const updated = await apiFetch<VoiceAgent>(`/v1/restaurants/${restaurantId}/agent`, {
       method: "PATCH",
-      body: JSON.stringify({ voice_id: voiceId, greeting, system_prompt: systemPrompt, active }),
+      body: JSON.stringify({ voice_id: voiceId, greeting, system_prompt: systemPrompt, language, active }),
     });
     setAgent(updated);
     setMsg("Saved — ElevenLabs will use this voice_id on the next call.");
@@ -54,6 +56,15 @@ export default function AgentPage() {
         <label className="block text-sm">
           <span className="text-[var(--muted)]">ElevenLabs voice ID</span>
           <input className="field font-mono text-sm" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} required />
+        </label>
+        <label className="block text-sm">
+          <span className="text-[var(--muted)]">Primary language (Professional+ multilingual)</span>
+          <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="zh">Chinese</option>
+          </select>
         </label>
         <label className="block text-sm">
           <span className="text-[var(--muted)]">Greeting</span>

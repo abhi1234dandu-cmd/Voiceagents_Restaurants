@@ -23,7 +23,20 @@ def test_list_restaurants(client):
     assert res.json()[0]["name"] == "Demo Bistro"
 
 
-def test_create_restaurant(client):
+def test_create_restaurant_blocked_at_plan_cap(client):
+    """pro/starter allow 1 location; seed already has Demo Bistro."""
+    res = client.post(
+        "/v1/restaurants",
+        headers=AUTH,
+        json={"name": "Second Spot", "timezone": "America/New_York"},
+    )
+    assert res.status_code == 402
+
+
+def test_create_restaurant_on_premium(client):
+    from app.services.supabase_client import get_memory_store
+
+    get_memory_store().tables["organizations"][0]["plan"] = "premium"
     res = client.post(
         "/v1/restaurants",
         headers=AUTH,
