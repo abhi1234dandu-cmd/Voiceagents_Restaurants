@@ -21,6 +21,9 @@ export default function HomePage() {
             Hostline
           </span>
           <nav className="flex items-center gap-5 text-sm text-[var(--linen)]/80">
+            <Link href="/pricing" className="hidden hover:text-[var(--linen)] sm:inline">
+              Pricing
+            </Link>
             <Link href="/login" className="hidden hover:text-[var(--linen)] sm:inline">
               Sign in
             </Link>
