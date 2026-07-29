@@ -28,12 +28,7 @@ export default function AgentPage() {
     e.preventDefault();
     const updated = await apiFetch<VoiceAgent>(`/v1/restaurants/${restaurantId}/agent`, {
       method: "PATCH",
-      body: JSON.stringify({
-        voice_id: voiceId,
-        greeting,
-        system_prompt: systemPrompt,
-        active,
-      }),
+      body: JSON.stringify({ voice_id: voiceId, greeting, system_prompt: systemPrompt, active }),
     });
     setAgent(updated);
     setMsg("Saved — ElevenLabs will use this voice_id on the next call.");
@@ -49,55 +44,36 @@ export default function AgentPage() {
   if (!agent) return <p className="text-[var(--muted)]">Loading agent…</p>;
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-3xl font-bold">Voice agent</h1>
+    <div className="animate-rise max-w-2xl">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--olive)]">ElevenLabs</p>
+      <h1 className="brand mt-2 text-4xl font-bold">Voice agent</h1>
       <p className="mt-2 text-[var(--muted)]">
-        Speech out is always ElevenLabs TTS. Set a per-restaurant <code className="text-[var(--ink)]">voice_id</code>.
+        Speech out is always ElevenLabs TTS. Number: {agent.twilio_phone_e164 || "not provisioned"}
       </p>
       <form onSubmit={save} className="mt-8 space-y-4">
         <label className="block text-sm">
-          ElevenLabs voice ID
-          <input
-            className="mt-1 w-full rounded-md border border-[var(--line)] px-3 py-2 font-mono text-sm"
-            value={voiceId}
-            onChange={(e) => setVoiceId(e.target.value)}
-            required
-          />
+          <span className="text-[var(--muted)]">ElevenLabs voice ID</span>
+          <input className="field font-mono text-sm" value={voiceId} onChange={(e) => setVoiceId(e.target.value)} required />
         </label>
         <label className="block text-sm">
-          Greeting
-          <textarea
-            className="mt-1 w-full rounded-md border border-[var(--line)] px-3 py-2"
-            rows={2}
-            value={greeting}
-            onChange={(e) => setGreeting(e.target.value)}
-          />
+          <span className="text-[var(--muted)]">Greeting</span>
+          <textarea className="field" rows={2} value={greeting} onChange={(e) => setGreeting(e.target.value)} />
         </label>
         <label className="block text-sm">
-          Extra system prompt
-          <textarea
-            className="mt-1 w-full rounded-md border border-[var(--line)] px-3 py-2"
-            rows={4}
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
-          />
+          <span className="text-[var(--muted)]">Extra system prompt</span>
+          <textarea className="field" rows={4} value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} />
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
           Agent active
         </label>
         <div className="flex flex-wrap gap-3">
-          <button type="submit" className="rounded-md bg-[var(--ink)] px-4 py-2 font-semibold text-white">
-            Save
-          </button>
-          <button type="button" onClick={provision} className="rounded-md border border-[var(--line)] px-4 py-2">
+          <button type="submit" className="btn-primary">Save agent</button>
+          <button type="button" onClick={provision} className="rounded-sm border border-[var(--line)] px-4 py-3 text-sm font-semibold hover:bg-white">
             Provision Twilio number
           </button>
         </div>
       </form>
-      {agent.twilio_phone_e164 && (
-        <p className="mt-4 text-sm text-[var(--muted)]">Phone: {agent.twilio_phone_e164}</p>
-      )}
       {msg && <p className="mt-4 text-sm text-[var(--ok)]">{msg}</p>}
     </div>
   );

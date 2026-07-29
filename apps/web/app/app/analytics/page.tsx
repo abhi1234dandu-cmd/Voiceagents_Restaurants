@@ -11,8 +11,8 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Analytics</h1>
+    <div className="animate-rise">
+      <h1 className="brand text-4xl font-bold">Analytics</h1>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total calls", data?.total_calls],
@@ -20,9 +20,9 @@ export default function AnalyticsPage() {
           ["Reservations", data?.reservations_booked],
           ["Transfers", data?.transfers],
         ].map(([label, value]) => (
-          <div key={String(label)} className="rounded-lg border border-[var(--line)] bg-white p-5">
-            <p className="text-sm text-[var(--muted)]">{label}</p>
-            <p className="mt-2 text-3xl font-bold">{value ?? "—"}</p>
+          <div key={String(label)} className="panel">
+            <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{label}</p>
+            <p className="brand mt-2 text-3xl font-bold">{value ?? "—"}</p>
           </div>
         ))}
       </div>

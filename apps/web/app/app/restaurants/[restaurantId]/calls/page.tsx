@@ -21,21 +21,19 @@ export default function CallsPage() {
   }, [selected]);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="animate-rise grid gap-8 lg:grid-cols-2">
       <div>
-        <h1 className="text-3xl font-bold">Calls</h1>
-        <ul className="mt-6 space-y-2">
+        <h1 className="brand text-4xl font-bold">Calls</h1>
+        <ul className="mt-8 space-y-2">
           {calls.map((c) => (
             <li key={c.id}>
               <button
                 type="button"
                 onClick={() => setSelected(c.id)}
-                className={`w-full rounded-lg border px-4 py-3 text-left ${selected === c.id ? "border-[var(--ink)] bg-white" : "border-[var(--line)] bg-white"}`}
+                className={`w-full border px-4 py-3 text-left ${selected === c.id ? "border-[var(--olive)] bg-white" : "border-[var(--line)] bg-white"}`}
               >
-                <p className="font-medium">{c.from_number || "Unknown"}</p>
-                <p className="text-sm text-[var(--muted)]">
-                  {c.outcome || "—"} · {c.duration_sec ?? 0}s
-                </p>
+                <p className="font-semibold">{c.from_number || "Unknown"}</p>
+                <p className="text-sm text-[var(--muted)]">{c.outcome || "—"} · {c.duration_sec ?? 0}s</p>
               </button>
             </li>
           ))}
@@ -43,12 +41,12 @@ export default function CallsPage() {
         </ul>
       </div>
       <div>
-        <h2 className="text-xl font-semibold">Transcript</h2>
-        <div className="mt-4 space-y-3 rounded-lg border border-[var(--line)] bg-white p-4">
+        <h2 className="brand text-2xl font-bold">Transcript</h2>
+        <div className="mt-4 space-y-3 border border-[var(--line)] bg-white p-4">
           {turns.map((t) => (
             <div key={t.id}>
-              <p className="text-xs uppercase text-[var(--muted)]">{t.role}</p>
-              <p>{t.content}</p>
+              <p className="text-xs uppercase tracking-wider text-[var(--muted)]">{t.role}</p>
+              <p className="mt-1">{t.content}</p>
             </div>
           ))}
           {selected && !turns.length && <p className="text-[var(--muted)]">No turns logged.</p>}

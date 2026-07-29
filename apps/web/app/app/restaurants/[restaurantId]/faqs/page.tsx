@@ -35,24 +35,22 @@ export default function FaqsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">FAQs</h1>
-      <form onSubmit={add} className="mt-6 space-y-3">
-        <input className="w-full rounded-md border border-[var(--line)] px-3 py-2" placeholder="Question" value={question} onChange={(e) => setQuestion(e.target.value)} required />
-        <textarea className="w-full rounded-md border border-[var(--line)] px-3 py-2" placeholder="Answer" rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} required />
-        <button className="rounded-md bg-[var(--ink)] px-4 py-2 text-white">Add FAQ</button>
+    <div className="animate-rise max-w-2xl">
+      <h1 className="brand text-4xl font-bold">FAQs</h1>
+      <form onSubmit={add} className="mt-8 space-y-3">
+        <input className="field" placeholder="Question" value={question} onChange={(e) => setQuestion(e.target.value)} required />
+        <textarea className="field" placeholder="Answer" rows={3} value={answer} onChange={(e) => setAnswer(e.target.value)} required />
+        <button className="btn-primary !bg-[var(--espresso)] !text-[var(--linen)]">Add FAQ</button>
       </form>
       <ul className="mt-8 space-y-3">
         {faqs.map((f) => (
-          <li key={f.id} className="rounded-lg border border-[var(--line)] bg-white p-4">
+          <li key={f.id} className="border border-[var(--line)] bg-white p-4">
             <div className="flex justify-between gap-4">
               <div>
-                <p className="font-medium">{f.question}</p>
+                <p className="font-semibold">{f.question}</p>
                 <p className="mt-1 text-sm text-[var(--muted)]">{f.answer}</p>
               </div>
-              <button type="button" onClick={() => remove(f.id)} className="text-sm text-[var(--danger)]">
-                Delete
-              </button>
+              <button type="button" onClick={() => remove(f.id)} className="text-sm text-[var(--danger)]">Delete</button>
             </div>
           </li>
         ))}

@@ -31,17 +31,17 @@ export default function BillingPage() {
   const minutes = usage.filter((u) => u.metric === "voice_minutes").reduce((s, u) => s + Number(u.quantity), 0);
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-3xl font-bold">Billing</h1>
+    <div className="animate-rise max-w-xl">
+      <h1 className="brand text-4xl font-bold">Billing</h1>
       <p className="mt-2 text-[var(--muted)]">
         Plan: <strong className="text-[var(--ink)]">{org?.plan ?? "…"}</strong> · Status: {org?.status}
       </p>
       <p className="mt-4">Voice minutes used: {minutes}</p>
-      <div className="mt-6 flex gap-3">
-        <button type="button" onClick={checkout} className="rounded-md bg-[var(--ink)] px-4 py-2 text-white">
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button type="button" onClick={checkout} className="btn-primary !bg-[var(--espresso)] !text-[var(--linen)]">
           Upgrade / Checkout
         </button>
-        <button type="button" onClick={portal} className="rounded-md border border-[var(--line)] px-4 py-2">
+        <button type="button" onClick={portal} className="rounded-sm border border-[var(--line)] px-4 py-3 text-sm font-semibold">
           Customer portal
         </button>
       </div>

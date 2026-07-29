@@ -23,12 +23,7 @@ export default function MenuPage() {
     e.preventDefault();
     await apiFetch(`/v1/restaurants/${restaurantId}/menu`, {
       method: "POST",
-      body: JSON.stringify({
-        name,
-        price_cents: Math.round(parseFloat(price) * 100),
-        category,
-        description: "",
-      }),
+      body: JSON.stringify({ name, price_cents: Math.round(parseFloat(price) * 100), category, description: "" }),
     });
     setName("");
     load();
@@ -40,26 +35,22 @@ export default function MenuPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Menu</h1>
-      <form onSubmit={add} className="mt-6 flex flex-wrap gap-2">
-        <input className="rounded-md border border-[var(--line)] px-3 py-2" placeholder="Item" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input className="w-24 rounded-md border border-[var(--line)] px-3 py-2" value={price} onChange={(e) => setPrice(e.target.value)} />
-        <input className="w-32 rounded-md border border-[var(--line)] px-3 py-2" value={category} onChange={(e) => setCategory(e.target.value)} />
-        <button className="rounded-md bg-[var(--ink)] px-4 py-2 text-white">Add</button>
+    <div className="animate-rise">
+      <h1 className="brand text-4xl font-bold">Menu</h1>
+      <form onSubmit={add} className="mt-8 flex flex-wrap gap-2">
+        <input className="field max-w-xs" placeholder="Item" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input className="field w-24" value={price} onChange={(e) => setPrice(e.target.value)} />
+        <input className="field w-32" value={category} onChange={(e) => setCategory(e.target.value)} />
+        <button className="btn-primary !bg-[var(--espresso)] !text-[var(--linen)]">Add</button>
       </form>
-      <ul className="mt-8 divide-y divide-[var(--line)] rounded-lg border border-[var(--line)] bg-white">
+      <ul className="mt-8 divide-y divide-[var(--line)] border border-[var(--line)] bg-white">
         {items.map((i) => (
           <li key={i.id} className="flex items-center justify-between px-4 py-3">
             <div>
-              <p className="font-medium">{i.name}</p>
-              <p className="text-sm text-[var(--muted)]">
-                {i.category} · ${(i.price_cents / 100).toFixed(2)}
-              </p>
+              <p className="font-semibold">{i.name}</p>
+              <p className="text-sm text-[var(--muted)]">{i.category} · ${(i.price_cents / 100).toFixed(2)}</p>
             </div>
-            <button type="button" onClick={() => remove(i.id)} className="text-sm text-[var(--danger)]">
-              Delete
-            </button>
+            <button type="button" onClick={() => remove(i.id)} className="text-sm text-[var(--danger)]">Delete</button>
           </li>
         ))}
       </ul>

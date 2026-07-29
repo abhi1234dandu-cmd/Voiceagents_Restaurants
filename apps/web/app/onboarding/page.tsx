@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import type { Restaurant } from "@restaurant-voice/shared-types";
 
@@ -40,43 +41,30 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-4 py-12">
-      <p className="brand text-xl font-extrabold">Hostline</p>
-      <h1 className="mt-4 text-3xl font-bold">Set up your first restaurant</h1>
-      <p className="mt-2 text-[var(--muted)]">We&apos;ll create an ElevenLabs-powered voice agent you can tune next.</p>
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
-        <label className="block text-sm">
-          Organization name
-          <input
-            className="mt-1 w-full rounded-md border border-[var(--line)] px-3 py-2"
-            value={orgName}
-            onChange={(e) => setOrgName(e.target.value)}
-            placeholder="Demo Bistro Org"
-          />
-        </label>
-        <label className="block text-sm">
-          Restaurant name
-          <input
-            className="mt-1 w-full rounded-md border border-[var(--line)] px-3 py-2"
-            value={restaurantName}
-            onChange={(e) => setRestaurantName(e.target.value)}
-            required
-          />
-        </label>
-        <label className="block text-sm">
-          Staff transfer number (E.164)
-          <input
-            className="mt-1 w-full rounded-md border border-[var(--line)] px-3 py-2"
-            value={transfer}
-            onChange={(e) => setTransfer(e.target.value)}
-            placeholder="+15555550999"
-          />
-        </label>
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        <button type="submit" disabled={loading} className="w-full rounded-md bg-[var(--ink)] py-2.5 font-semibold text-white">
-          {loading ? "Creating…" : "Continue to agent settings"}
-        </button>
-      </form>
+    <main className="min-h-screen bg-[var(--linen)] px-4 py-16">
+      <div className="mx-auto max-w-lg animate-rise">
+        <Link href="/" className="brand text-2xl font-bold">Hostline</Link>
+        <h1 className="brand mt-8 text-4xl font-bold">Set up your first restaurant</h1>
+        <p className="mt-2 text-[var(--muted)]">We&apos;ll create an ElevenLabs-powered voice agent next.</p>
+        <form onSubmit={onSubmit} className="mt-8 space-y-4">
+          <label className="block text-sm">
+            <span className="text-[var(--muted)]">Organization name</span>
+            <input className="field" value={orgName} onChange={(e) => setOrgName(e.target.value)} placeholder="Demo Bistro Org" />
+          </label>
+          <label className="block text-sm">
+            <span className="text-[var(--muted)]">Restaurant name</span>
+            <input className="field" value={restaurantName} onChange={(e) => setRestaurantName(e.target.value)} required />
+          </label>
+          <label className="block text-sm">
+            <span className="text-[var(--muted)]">Staff transfer number</span>
+            <input className="field" value={transfer} onChange={(e) => setTransfer(e.target.value)} placeholder="+15555550999" />
+          </label>
+          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+          <button type="submit" disabled={loading} className="btn-primary w-full">
+            {loading ? "Creating…" : "Continue to agent"}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

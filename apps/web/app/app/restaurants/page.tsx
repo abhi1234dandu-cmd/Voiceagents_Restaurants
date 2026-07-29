@@ -29,28 +29,21 @@ export default function RestaurantsPage() {
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold">Restaurants</h1>
-      <form onSubmit={create} className="mt-6 flex gap-2">
-        <input
-          className="flex-1 rounded-md border border-[var(--line)] px-3 py-2"
-          placeholder="New restaurant name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <button type="submit" className="rounded-md bg-[var(--ink)] px-4 py-2 text-white">
-          Add
-        </button>
+    <div className="animate-rise">
+      <h1 className="brand text-4xl font-bold">Restaurants</h1>
+      <p className="mt-2 text-[var(--muted)]">Locations with their own number and ElevenLabs voice.</p>
+      <form onSubmit={create} className="mt-8 flex flex-wrap gap-2">
+        <input className="field max-w-md flex-1" placeholder="New restaurant name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <button type="submit" className="btn-primary !bg-[var(--espresso)] !text-[var(--linen)]">Add</button>
       </form>
-      <ul className="mt-8 space-y-2">
+      <ul className="mt-8 space-y-3">
         {items.map((r) => (
-          <li key={r.id} className="flex items-center justify-between rounded-lg border border-[var(--line)] bg-white px-4 py-3">
+          <li key={r.id} className="flex items-center justify-between border border-[var(--line)] bg-white px-5 py-4">
             <div>
-              <p className="font-medium">{r.name}</p>
+              <p className="font-semibold">{r.name}</p>
               <p className="text-sm text-[var(--muted)]">{r.phone_e164 || "No number"} · {r.timezone}</p>
             </div>
-            <Link href={`/app/restaurants/${r.id}/agent`} className="text-sm font-medium underline">
+            <Link href={`/app/restaurants/${r.id}/agent`} className="text-sm font-semibold text-[var(--olive)] underline">
               Configure
             </Link>
           </li>
