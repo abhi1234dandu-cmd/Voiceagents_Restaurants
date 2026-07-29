@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from app.config import Settings, get_settings
 from app.deps.auth import AuthContext, get_current_user
@@ -8,16 +9,42 @@ from app.services.stripe_service import StripeService
 
 router = APIRouter(prefix="/v1/billing", tags=["billing"])
 
+PLANS = [
+    {"id": "starter", "name": "Starter", "price": "$249/mo", "minutes": 500},
+    {"id": "professional", "name": "Professional", "price": "$499/mo", "minutes": 2000},
+    {"id": "premium", "name": "Premium", "price": "From $999/mo", "minutes": None},
+    {"id": "enterprise", "name": "Enterprise", "price": "From $2,500/mo", "minutes": None},
+]
+
+
+class CheckoutBody(BaseModel):
+    plan: str = Field(default="starter", pattern="^(starter|professional|premium)$")
+
+
+@router.get("/plans")
+def list_plans():
+    return PLANS
+
 
 @router.post("/checkout-session", response_model=CheckoutSessionResponse)
-def checkout(auth: AuthContext = Depends(get_current_user), settings: Settings = Depends(get_settings)):
+def checkout(
+    body: CheckoutBody | None = None,
+    auth: AuthContext = Depends(get_current_user),
+    settings: Settings = Depends(get_settings),
+):
+    plan = (body.plan if body else "starter")
     repo = Repository()
     org = repo.get_org(auth.org_id)
     stripe_svc = StripeService(settings)
     customer_id = stripe_svc.ensure_customer(org, auth.email)
     if customer_id != org.get("stripe_customer_id"):
         repo.update_org(auth.org_id, {"stripe_customer_id": customer_id})
-    url = stripe_svc.create_checkout_session(customer_id, str(auth.org_id))
+    try:
+        url = stripe_svc.create_checkout_session(customer_id, str(auth.org_id), plan=plan)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    if not settings.stripe_secret_key:
+        repo.update_org(auth.org_id, {"plan": plan, "status": "active"})
     return CheckoutSessionResponse(url=url)
 
 

@@ -27,17 +27,28 @@ class StripeService:
         )
         return customer["id"]
 
-    def create_checkout_session(self, customer_id: str, org_id: str) -> str:
+    def price_for_plan(self, plan: str) -> str:
+        mapping = {
+            "starter": self.settings.stripe_price_id_starter or self.settings.stripe_price_id,
+            "professional": self.settings.stripe_price_id_professional or self.settings.stripe_price_id,
+            "premium": self.settings.stripe_price_id_premium or self.settings.stripe_price_id,
+        }
+        return mapping.get(plan, self.settings.stripe_price_id_starter or self.settings.stripe_price_id)
+
+    def create_checkout_session(self, customer_id: str, org_id: str, plan: str = "starter") -> str:
         if not self.enabled:
-            return f"{self.settings.app_url}/app/billing?session=dev"
+            return f"{self.settings.app_url}/app/billing?session=dev&plan={plan}"
+        price = self.price_for_plan(plan)
+        if not price:
+            raise ValueError(f"No Stripe price configured for plan={plan}")
         session = stripe.checkout.Session.create(
             mode="subscription",
             customer=customer_id,
-            line_items=[{"price": self.settings.stripe_price_id, "quantity": 1}],
-            success_url=f"{self.settings.app_url}/app/billing?success=1",
+            line_items=[{"price": price, "quantity": 1}],
+            success_url=f"{self.settings.app_url}/app/billing?success=1&plan={plan}",
             cancel_url=f"{self.settings.app_url}/app/billing?canceled=1",
-            metadata={"org_id": org_id},
-            subscription_data={"metadata": {"org_id": org_id}},
+            metadata={"org_id": org_id, "plan": plan},
+            subscription_data={"metadata": {"org_id": org_id, "plan": plan}},
         )
         return session.url
 
