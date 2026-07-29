@@ -20,17 +20,18 @@ class AuthContext:
 
 
 def decode_jwt(token: str, settings: Settings) -> dict[str, Any]:
-    if not settings.supabase_jwt_secret:
-        # Dev fallback: accept opaque "dev:<user_id>:<org_id>:<role>"
-        if token.startswith("dev:"):
-            parts = token.split(":")
-            if len(parts) >= 4:
-                return {
-                    "sub": parts[1],
-                    "org_id": parts[2],
-                    "role": parts[3],
-                    "email": "dev@example.com",
-                }
+    # Local/dev opaque tokens always win in development
+    if token.startswith("dev:"):
+        parts = token.split(":")
+        if len(parts) >= 4:
+            return {
+                "sub": parts[1],
+                "org_id": parts[2],
+                "role": parts[3],
+                "email": "dev@example.com",
+            }
+        raise HTTPException(status_code=401, detail="Malformed dev token")
+    if not settings.supabase_jwt_secret or settings.supabase_jwt_secret.startswith("your-"):
         raise HTTPException(status_code=401, detail="JWT secret not configured")
     try:
         return jwt.decode(
@@ -54,7 +55,7 @@ async def get_current_user(
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid subject")
 
-    # Dev token shortcut
+    # Dev token shortcut — org comes from token, not membership lookup
     if credentials.credentials.startswith("dev:"):
         return AuthContext(
             user_id=UUID(payload["sub"]),

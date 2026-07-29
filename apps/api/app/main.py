@@ -16,6 +16,7 @@ from app.routers import (
     tools,
     twilio_webhooks,
 )
+from app.services.seed_demo import seed_demo_if_needed
 
 settings = get_settings()
 
@@ -23,6 +24,8 @@ if settings.sentry_dsn:
     import sentry_sdk
 
     sentry_sdk.init(dsn=settings.sentry_dsn, environment=settings.environment, traces_sample_rate=0.1)
+
+seed_demo_if_needed()
 
 app = FastAPI(title="Restaurant Voice SaaS API", version="1.0.0")
 
