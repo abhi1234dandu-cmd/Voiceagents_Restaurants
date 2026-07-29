@@ -1,0 +1,20 @@
+{
+  "name": "restaurant-voice-saas",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "build:web": "npm run build -w apps/web",
+    "lint:web": "npm run lint -w apps/web",
+    "typecheck:web": "npm run typecheck -w apps/web",
+    "test:api": "cd apps/api && python -m pytest -q",
+    "test:worker": "cd apps/voice-worker && python -m pytest -q",
+    "ci": "npm run lint:web && npm run typecheck:web && npm run test:api && npm run test:worker"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

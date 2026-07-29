@@ -1,0 +1,109 @@
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+
+from app.config import Settings, get_settings
+from app.deps.auth import AuthContext, get_current_user
+from app.models.schemas import CheckoutSessionResponse
+from app.services.repository import Repository
+from app.services.stripe_service import StripeService
+
+router = APIRouter(prefix="/v1/billing", tags=["billing"])
+
+
+@router.post("/checkout-session", response_model=CheckoutSessionResponse)
+def checkout(auth: AuthContext = Depends(get_current_user), settings: Settings = Depends(get_settings)):
+    repo = Repository()
+    org = repo.get_org(auth.org_id)
+    stripe_svc = StripeService(settings)
+    customer_id = stripe_svc.ensure_customer(org, auth.email)
+    if customer_id != org.get("stripe_customer_id"):
+        repo.update_org(auth.org_id, {"stripe_customer_id": customer_id})
+    url = stripe_svc.create_checkout_session(customer_id, str(auth.org_id))
+    return CheckoutSessionResponse(url=url)
+
+
+@router.post("/portal", response_model=CheckoutSessionResponse)
+def portal(auth: AuthContext = Depends(get_current_user), settings: Settings = Depends(get_settings)):
+    repo = Repository()
+    org = repo.get_org(auth.org_id)
+    if not org.get("stripe_customer_id"):
+        raise HTTPException(400, "No Stripe customer")
+    url = StripeService(settings).create_portal_session(org["stripe_customer_id"])
+    return CheckoutSessionResponse(url=url)
+
+
+@router.get("/usage")
+def usage(auth: AuthContext = Depends(get_current_user)):
+    return Repository().list_usage(auth.org_id)
+
+
+@router.post("/webhooks/stripe")
+async def stripe_webhook(
+    request: Request,
+    stripe_signature: str | None = Header(default=None, alias="Stripe-Signature"),
+    settings: Settings = Depends(get_settings),
+):
+    payload = await request.body()
+    stripe_svc = StripeService(settings)
+    try:
+        event = stripe_svc.construct_event(payload, stripe_signature or "")
+    except Exception as exc:
+        raise HTTPException(400, f"Webhook error: {exc}") from exc
+
+    repo = Repository()
+    event_type = event["type"] if isinstance(event, dict) else getattr(event, "type", None)
+    data = event["data"]["object"] if isinstance(event, dict) else event["data"]["object"]
+    if not isinstance(data, dict):
+        data = dict(data)
+
+    if event_type in ("checkout.session.completed", "customer.subscription.updated", "customer.subscription.created"):
+        org_id = (data.get("metadata") or {}).get("org_id")
+        customer = data.get("customer")
+        status = data.get("status", "active")
+        if event_type == "checkout.session.completed":
+            status = "active"
+            org_id = org_id or (data.get("metadata") or {}).get("org_id")
+            sub_id = data.get("subscription")
+        else:
+            sub_id = data.get("id")
+
+        if not org_id and customer:
+            orgs = [o for o in repo.list_orgs() if o.get("stripe_customer_id") == customer]
+            org_id = orgs[0]["id"] if orgs else None
+
+        if org_id:
+            plan = "pro" if status in ("active", "trialing") else "free"
+            org_status = "active" if status in ("active", "trialing") else "past_due"
+            updates = {"plan": plan, "status": org_status}
+            if customer:
+                updates["stripe_customer_id"] = customer
+            repo.update_org(org_id, updates)
+            repo.upsert_billing_subscription(
+                org_id,
+                {
+                    "stripe_subscription_id": sub_id,
+                    "price_id": settings.stripe_price_id,
+                    "status": status,
+                    "current_period_end": data.get("current_period_end"),
+                    "minutes_included": 500,
+                },
+            )
+
+    if event_type in ("invoice.payment_failed", "customer.subscription.deleted"):
+        org_id = (data.get("metadata") or {}).get("org_id")
+        customer = data.get("customer")
+        if not org_id and customer:
+            orgs = [o for o in repo.list_orgs() if o.get("stripe_customer_id") == customer]
+            org_id = orgs[0]["id"] if orgs else None
+        if org_id:
+            repo.update_org(org_id, {"status": "past_due", "plan": "free"})
+            if event_type == "customer.subscription.deleted":
+                repo.upsert_billing_subscription(
+                    org_id,
+                    {
+                        "stripe_subscription_id": data.get("id"),
+                        "status": "canceled",
+                        "price_id": settings.stripe_price_id,
+                    },
+                )
+
+    return {"received": True}

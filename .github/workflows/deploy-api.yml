@@ -1,0 +1,25 @@
+name: Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/api/**"
+      - "apps/voice-worker/**"
+      - ".github/workflows/deploy-api.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Notify Railway deploy
+        run: |
+          echo "Configure Railway GitHub integration or railway up with RAILWAY_TOKEN."
+          echo "API service: apps/api"
+          echo "Voice worker service: apps/voice-worker"
+      - name: Health smoke (optional)
+        if: ${{ secrets.STAGING_API_URL != '' }}
+        run: curl -fsS "${{ secrets.STAGING_API_URL }}/health"
+        env:
+          STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
