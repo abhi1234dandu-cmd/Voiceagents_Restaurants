@@ -111,4 +111,22 @@ TOOL_SPECS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "log_catering_inquiry",
+            "description": "Capture a catering inquiry for staff follow-up",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "guest_name": {"type": "string"},
+                    "guest_phone": {"type": "string"},
+                    "event_date": {"type": "string"},
+                    "guest_count": {"type": "integer"},
+                    "notes": {"type": "string"},
+                },
+                "required": ["guest_name", "guest_phone"],
+            },
+        },
+    },
 ]
